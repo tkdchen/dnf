@@ -75,3 +75,15 @@ class SkipBroken(support.ResultTestCase):
         new_set = support.installed_but(self.sack, "pepper").run()
         new_set.extend(available_by_nevra(self.sack, "pepper-20-1.x86_64"))
         self.assertResult(self.yumbase, new_set)
+
+class LimitInstallonlyTest(support.ResultTestCase):
+    def setUp(self):
+        self.base = support.MockYumBase('k')
+        self.base.conf.installonlypkgs.append('k')
+        self.sack = self.base.sack
+
+    def test_installonly(self):
+        self.base.update()
+        (i, r) = self.installed_removed(self.base)
+        print(map(str, i))
+        print(map(str, r))

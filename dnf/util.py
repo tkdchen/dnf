@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 import dnf.const
+import glob
 import hawkey
 import os
 import shutil
@@ -112,6 +113,15 @@ def rm_rf(path):
         shutil.rmtree(path)
     except OSError:
         pass
+
+def running_kernel(sack):
+    ver = os.uname()[2]
+    installed = sack.query().installed()
+    for fn in glob.glob('/boot/vmlinuz-*%s*' % ver):
+        ikernels = installed.filter(reponame=hawkey.SYSTEM_REPO_NAME, file=fn)
+        if len(ikernels) > 0:
+            return ikernels[0]
+    return None
 
 def strip_prefix(s, prefix):
     if s.startswith(prefix):

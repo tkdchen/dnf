@@ -31,8 +31,8 @@ import hawkey.test
 import os
 import unittest
 
-RPMDB_CHECKSUM = 'b3fa9f5ed659fa881ac901606be5e8f99ca55cc3'
-TOTAL_RPMDB_COUNT = 5
+RPMDB_CHECKSUM = '03810b6504386d5ad04120845c632f83db93b0f3'
+TOTAL_RPMDB_COUNT = 8
 SYSTEM_NSOLVABLES = TOTAL_RPMDB_COUNT
 MAIN_NSOLVABLES = 8
 UPDATES_NSOLVABLES = 4
@@ -192,7 +192,7 @@ class FakeConf(object):
         self.group_package_types = ['mandatory', 'default']
         self.groupremove_leaf_only = False
         self.history_record = False
-        self.installonly_limit = 0
+        self.installonly_limit = 3
         self.installonlypkgs = ['kernel']
         self.installroot = '/'
         self.multilib_policy = 'best'
