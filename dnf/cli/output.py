@@ -441,7 +441,8 @@ class Output(object):
 
     GRP_PACKAGE_INDENT = ' ' * 3
 
-    def __init__(self):
+    def __init__(self, base):
+        self.base = base
         self.logger = logging.getLogger("dnf")
         if hasattr(rpm, "expandMacro"):
             self.i18ndomains = rpm.expandMacro("%_i18ndomains").split(":")
@@ -494,6 +495,10 @@ class Output(object):
                 break
             ret += tup[1]
         return ret
+
+    @property
+    def conf(self):
+        return self.base.conf
 
     def calcColumns(self, data, columns=None, remainder_column=0,
                     total_width=None, indent=''):

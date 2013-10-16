@@ -186,6 +186,7 @@ class YumBaseCliTest(PycompTestCase):
         self.assertEqual(result, 1)
         self.assertEqual(resultmsgs, ['Nothing to do'])
 
+    # move to output test
     def test_infoOutput_with_none_description(self):
         pkg = support.MockPackage('tour-5-0.noarch')
         pkg.from_system = False
@@ -293,13 +294,15 @@ class SearchTest(PycompTestCase):
         self.yumbase = support.MockYumBase("search")
         self.cli = dnf.cli.cli.Cli(self.yumbase)
 
-        self.yumbase.fmtSection = lambda str: str
-        self.yumbase.matchcallback = mock.MagicMock()
+        self.yumbase.output = mock.Mock()
+        self.yumbase.output.fmtSection = lambda str: str
+        self.yumbase.output = mock.MagicMock()
 
     def patched_search(self, *args, **kwargs):
         with mock.patch('sys.stdout') as stdout:
             self.cli.search(*args, **kwargs)
-            pkgs = [c[0][0] for c in self.yumbase.matchcallback.call_args_list]
+            call_args = self.yumbase.output.matchcallback.call_args_list
+            pkgs = [c[0][0] for c in call_args]
             return (stdout, pkgs)
 
     def test_search(self):

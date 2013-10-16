@@ -138,8 +138,6 @@ class MockYumBase(dnf.Base):
         self.cache_c.suffix = ""
 
         self.ds_callback = mock.Mock()
-        self.setupProgressCallbacks = mock.Mock()
-        self.setupKeyImportCallbacks = mock.Mock()
 
     @property
     def sack(self):

@@ -92,14 +92,14 @@ def print_versions(pkgs, yumbase):
         # print(_("  Committed: %s at %s") % (pkg.committer,
         #                                    sm_ui_date(pkg.committime)))
 
-class BaseCli(dnf.Base, output.Output):
+class BaseCli(dnf.Base):
     """This is the base class for yum cli."""
 
     def __init__(self):
         # handle sigquit early on
         signal.signal(signal.SIGQUIT, sigquit)
         dnf.Base.__init__(self)
-        output.Output.__init__(self)
+        self.output = output.Output(self)
         self.logger = logging.getLogger("dnf")
 
     def errorSummary(self, errstring):
@@ -145,7 +145,7 @@ class BaseCli(dnf.Base, output.Output):
             self.logger.info(msg)
             return -1, None
 
-        lsts = self.list_transaction()
+        lsts = self.output.list_transaction()
         self.logger.info(lsts)
         # Check which packages have to be downloaded
         downloadpkgs = []
@@ -168,13 +168,13 @@ class BaseCli(dnf.Base, output.Output):
 
         # report the total download size to the user
         if not stuff_to_download:
-            self.reportRemoveSize(rmpkgs)
+            self.output.reportRemoveSize(rmpkgs)
         else:
-            self.reportDownloadSize(downloadpkgs, install_only)
+            self.output.reportDownloadSize(downloadpkgs, install_only)
 
         # confirm with user
         if self._promptWanted():
-            if self.conf.assumeno or not self.userconfirm():
+            if self.conf.assumeno or not self.output.userconfirm():
                 self.logger.info(_('Exiting on user Command'))
                 return -1, None
 
@@ -182,7 +182,7 @@ class BaseCli(dnf.Base, output.Output):
         if downloadpkgs:
             self.logger.info(_('Downloading Packages:'))
         problems = self.download_packages(downloadpkgs, self.progress,
-                                          self.download_callback_total_cb)
+                                          self.output.download_callback_total_cb)
 
         if len(problems) > 0:
             errstring = ''
@@ -200,7 +200,7 @@ class BaseCli(dnf.Base, output.Output):
         display = output.CliTransactionDisplay(weakref(self))
         return_code, resultmsgs = super(BaseCli, self).do_transaction(display)
         if return_code == 0:
-            self.logger.info(self.post_transaction_output())
+            self.logger.info(self.output.post_transaction_output())
         return return_code, resultmsgs
 
     def gpgsigcheck(self, pkgs):
@@ -227,7 +227,8 @@ class BaseCli(dnf.Base, output.Output):
 
                 # the callback here expects to be able to take options which
                 # userconfirm really doesn't... so fake it
-                self.getKeyForPackage(po, lambda x, y, z: self.userconfirm())
+                fn = lambda x, y, z: self.output.userconfirm()
+                self.getKeyForPackage(po, fn)
 
             else:
                 # Fatal error
@@ -241,8 +242,8 @@ class BaseCli(dnf.Base, output.Output):
         matches = matches.installed + matches.available
         matches = set(map(lambda x: x.name, matches))
         if matches:
-            msg = self.fmtKeyValFill(_('  * Maybe you meant: '),
-                                     ", ".join(matches))
+            msg = self.output.fmtKeyValFill(_('  * Maybe you meant: '),
+                                            ", ".join(matches))
             self.logger.info(to_unicode(msg))
 
     def _checkMaybeYouMeant(self, arg, always_output=True, rpmdb_only=False):
@@ -285,8 +286,8 @@ class BaseCli(dnf.Base, output.Output):
                                     _('No package %s%s%s available.'),
                                     hibeg, arg, hiend)
         if matches:
-            msg = self.fmtKeyValFill(_('  * Maybe you meant: '),
-                                     ", ".join(matches))
+            msg = self.output.fmtKeyValFill(_('  * Maybe you meant: '),
+                                            ", ".join(matches))
             self.logger.info(msg)
 
     def installPkgs(self, userlist):
@@ -634,7 +635,7 @@ class BaseCli(dnf.Base, output.Output):
                     pass
 
         results = self.findDeps(pkgs)
-        self.depListOutput(results)
+        self.output.depListOutput(results)
 
         return 0, []
 
@@ -660,7 +661,7 @@ class BaseCli(dnf.Base, output.Output):
         for spec in args:
             matches.extend(super(BaseCli, self). provides(spec))
         for pkg in matches:
-            self.matchcallback_verbose(pkg, [], args)
+            self.output.matchcallback_verbose(pkg, [], args)
         self.conf.showdupesfromrepos = old_sdup
 
         if matches:
@@ -696,7 +697,7 @@ class BaseCli(dnf.Base, output.Output):
         """
         pkgcode = xmlcode = dbcode = expccode = 0
         pkgresults = xmlresults = dbresults = expcresults = []
-        msg = self.fmtKeyValFill(_('Cleaning repos: '),
+        msg = self.output.fmtKeyValFill(_('Cleaning repos: '),
                         ' '.join([ x.id for x in self.repos.iter_enabled()]))
         self.logger.info(msg)
         if 'all' in userlist:
@@ -878,7 +879,7 @@ class BaseCli(dnf.Base, output.Output):
         for strng in userlist:
             group_matched = False
             for group in self.comps.groups_by_pattern(strng):
-                self.displayPkgsInGroups(group)
+                self.output.displayPkgsInGroups(group)
                 group_matched = True
 
             if not group_matched:
@@ -1025,7 +1026,7 @@ class Cli(object):
                 repo.md_expire_cache()
 
         # setup the progress bars/callbacks
-        self.base.setupProgressCallbacks()
+        self.base.output.setupProgressCallbacks()
         # setup the callbacks to import gpg pubkeys and confirm them
         self.base.setupKeyImportCallbacks()
 
@@ -1330,7 +1331,7 @@ class Cli(object):
         def _print_match_section(text, keys):
             # Print them in the order they were passed
             used_keys = [arg for arg in args if arg in keys]
-            print(self.base.fmtSection(text % ", ".join(used_keys)))
+            print(self.base.output.fmtSection(text % ", ".join(used_keys)))
 
         # prepare the input
         dups = self.base.conf.showdupesfromrepos
@@ -1362,7 +1363,8 @@ class Cli(object):
             if matched_needles != counter.matched_needles(pkg):
                 matched_needles = counter.matched_needles(pkg)
                 _print_match_section(section_text, matched_needles)
-            self.base.matchcallback(pkg, counter.matched_haystacks(pkg), args)
+            self.base.output.matchcallback(pkg, counter.matched_haystacks(pkg),
+                                           args)
 
         if len(counter) == 0:
             self.logger.warning(_('Warning: No matches found for: %s'), arg)
