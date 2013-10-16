@@ -1026,9 +1026,18 @@ class Cli(object):
                 repo.md_expire_cache()
 
         # setup the progress bars/callbacks
-        self.base.output.setupProgressCallbacks()
+        bar = self.base.output.setup_progress_callbacks()
+        self.base.repos.all.set_progress_bar(bar)
+
+        self.repos.confirm_func = confirm_func
+        self.repos.gpg_import_func = gpg_import_func
+        self.repos.gpgca_import_func = gpgca_import_func
+        
+        self.repos.confirm_func = 
         # setup the callbacks to import gpg pubkeys and confirm them
         self.base.output.setupKeyImportCallbacks()
+
+        # cont here
 
     def _root_and_conffile(self, installroot, conffile):
         """After the first parse of the cmdline options, find initial values for

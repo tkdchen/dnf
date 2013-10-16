@@ -1,0 +1,6 @@
+refactor: split Output and Base objects in CLI.
+
+This ends one of the most unfortunate hacks of the DNF codebase. Have output as
+an attribute of the BaseCli instead. Drawback is the Output instance now needs
+backreference to the base, because just giving it conf wouldn't work (it's
+replaced during read_conf_file()).

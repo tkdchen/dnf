@@ -1432,33 +1432,28 @@ Transaction Summary
 
         return out
 
-    def setupProgressCallbacks(self):
+    def setup_progress_callbacks(self):
         """Set up the progress callbacks and various
            output bars based on debug level.
         """
-        # if we're below 2 on the debug level we don't need to be outputting
-        # progress bars - this is hacky - I'm open to other options
-        # One of these is a download
-        if self.conf.debuglevel < 2 or not sys.stdout.isatty():
-            progressbar = None
-        else:
+        progressbar = None
+        if self.conf.debuglevel >= 2 and sys.stdout.isatty():
             progressbar = dnf.cli.progress.LibrepoCallbackAdaptor(fo=sys.stdout)
             self.progress = dnf.cli.progress.MultiFileProgressMeter(fo=sys.stdout)
-        self.repos.all.set_progress_bar(progressbar)
 
         # setup our depsolve progress callback
-        dscb = DepSolveProgressCallBack(weakref(self))
-        self.ds_callback = dscb
+        self.ds_callback = DepSolveProgressCallBack(weakref(self))
+        return progressbar
 
-    def setupKeyImportCallbacks(self):
+    def setup_key_import_callbacks(self, repos):
         """Set up callbacks to import and confirm gpg public keys."""
 
         confirm_func = self._cli_confirm_gpg_key_import
         gpg_import_func = self.getKeyForRepo
         gpgca_import_func = self.getCAKeyForRepo
-        self.repos.confirm_func = confirm_func
-        self.repos.gpg_import_func = gpg_import_func
-        self.repos.gpgca_import_func = gpgca_import_func
+        repos.confirm_func = confirm_func
+        repos.gpg_import_func = gpg_import_func
+        repos.gpgca_import_func = gpgca_import_func
 
     def download_callback_total_cb(self, remote_pkgs, remote_size,
                                    download_start_timestamp):
