@@ -1028,7 +1028,7 @@ class Cli(object):
         # setup the progress bars/callbacks
         self.base.output.setupProgressCallbacks()
         # setup the callbacks to import gpg pubkeys and confirm them
-        self.base.setupKeyImportCallbacks()
+        self.base.output.setupKeyImportCallbacks()
 
     def _root_and_conffile(self, installroot, conffile):
         """After the first parse of the cmdline options, find initial values for
@@ -1331,7 +1331,8 @@ class Cli(object):
         def _print_match_section(text, keys):
             # Print them in the order they were passed
             used_keys = [arg for arg in args if arg in keys]
-            print(self.base.output.fmtSection(text % ", ".join(used_keys)))
+            formatted = self.base.output.fmtSection(text % ", ".join(used_keys))
+            print(ucd(formatted))
 
         # prepare the input
         dups = self.base.conf.showdupesfromrepos
