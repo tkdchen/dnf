@@ -321,3 +321,27 @@ readded now.
 Bugs fixed in 0.4.5:
 
 * :rhbug:`1021087`
+
+===================
+0.4.6 Release Notes
+===================
+
+0.4.6 brings two new major features. Firstly, it is the revival of ``history
+undo``, so transactions can be reverted now.  Secondly, DNF will now limit the
+number of installed kernels and *installonly* packages in general to the number
+specified by :ref:`installonly_limit <installonly-limit-label>` configuration
+option.
+
+DNF now supports the ``group summary`` command and one-word group commands no
+longer cause tracebacks, e.g. ``dnf grouplist``.
+
+There are vast internal changes to ``dnf.cli``, the subpackge that provides CLI
+to DNF. In particular, it is now better separated from the core.
+
+Bugs fixed in 0.4.6:
+
+* :rhbug:`878348`
+* :rhbug:`880524`
+* :rhbug:`1019957`
+* :rhbug:`1020101`
+* :rhbug:`1020934`
